@@ -1,14 +1,21 @@
+#ifdef ARDUINO
 #include <Arduino.h>
 #include <FastLED.h>
+#include "OneButton.h"
+
 // #include "randomprovider.h"
 
 #define DATA_PIN 7
 #define NUM_LEDS 6
 
 // RandomProvider _randomProvider;
+void onButtonControlClicked();
+void onButtonControlLongPressStopped();
 int getRandomDirection();
 int getRandomWind();
 CRGB windToColor(int wind);
+
+OneButton buttonControl(4, true);
 
 CRGB leds[NUM_LEDS];
 
@@ -17,22 +24,31 @@ void setup()
   FastLED.addLeds<WS2812B, DATA_PIN, GRB>(leds, NUM_LEDS);
   FastLED.setBrightness(100);
 
+  buttonControl.attachClick(onButtonControlClicked);
+  buttonControl.attachLongPressStop(onButtonControlLongPressStopped);
+
   // Seed random
   randomSeed(analogRead(0));
 }
 
 void loop()
 {
+  buttonControl.tick();
+}
+
+void onButtonControlClicked()
+{
+  FastLED.clearData();
   auto direction = getRandomDirection();
   auto color = windToColor(getRandomWind());
   leds[direction] = color;
   FastLED.show();
-  delay(3000);
+}
 
-  // Now turn the LED off, then pause
-  leds[direction] = CRGB::Black;
+void onButtonControlLongPressStopped()
+{
+  FastLED.clearData();
   FastLED.show();
-  delay(3000);
 }
 
 int getRandomDirection()
@@ -61,3 +77,4 @@ CRGB windToColor(int wind)
     return CRGB::Green;
   }
 }
+#endif
